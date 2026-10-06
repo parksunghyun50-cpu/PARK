@@ -1,13 +1,16 @@
+// ===== FIREBASE CONFIG (실제 서버 연결 설정) =====
 const firebaseConfig = {
-    apiKey: "여기에_본인_API_KEY",
-    authDomain: "여기에_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://여기에_PROJECT_ID-default-rtdb.firebaseio.com",
-    projectId: "여기에_PROJECT_ID",
-    storageBucket: "여기에_PROJECT_ID.appspot.com",
-    messagingSenderId: "여기에_SENDER_ID",
-    appId: "여기에_APP_ID"
+  apiKey: "AIzaSyAg13kD8ukztE50jbQYgaCxAK0Tc_ItgEI",
+  authDomain: "park-game-73d33.firebaseapp.com",
+  databaseURL: "https://park-game-73d33-default-rtdb.firebaseio.com",
+  projectId: "park-game-73d33",
+  storageBucket: "park-game-73d33.firebasestorage.app",
+  messagingSenderId: "272093719988",
+  appId: "1:272093719988:web:842f75f50049c4a7fa16e1",
+  measurementId: "G-2V6VKLN9LS"
 };
 
+// 파이어베이스 초기화
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
