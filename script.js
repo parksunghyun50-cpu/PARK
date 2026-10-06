@@ -1,3 +1,16 @@
+const firebaseConfig = {
+    apiKey: "여기에_본인_API_KEY",
+    authDomain: "여기에_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://여기에_PROJECT_ID-default-rtdb.firebaseio.com",
+    projectId: "여기에_PROJECT_ID",
+    storageBucket: "여기에_PROJECT_ID.appspot.com",
+    messagingSenderId: "여기에_SENDER_ID",
+    appId: "여기에_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 // ===== CHOICES & EMOJIS =====
 const CHOICES = {
     scissors: { emoji: '✌️', name: '가위', beats: 'paper' },
