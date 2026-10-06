@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가위바위보 아레나 (배팅 & 대전)</title>
+    <meta name="description" content="계정, 코인 배팅, 대전방이 있는 가위바위보 게임">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- ===== 연승 알림 배너 ===== -->
+    <div class="streak-banner" id="streak-banner">
+        <span class="streak-text" id="streak-text">🔥 3연승 중!</span>
+    </div>
+
+    <!-- ===== AUTH SCREEN (로그인 / 회원가입) ===== -->
+    <div class="screen active" id="screen-auth">
+        <div class="auth-container">
+            <div class="auth-logo">
+                <span class="auth-logo-icon">⚔️</span>
+                <h1 class="auth-title">가위바위보<br><span class="auth-title-accent">아레나</span></h1>
+                <p class="auth-subtitle">배팅하고, 대결하고, 승리하세요!</p>
+            </div>
+            <div class="auth-card glass-card">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">로그인</button>
+                    <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">회원가입</button>
+                </div>
+                <!-- Login Form -->
+                <form class="auth-form" id="form-login" onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <label for="login-id">아이디</label>
+                        <input type="text" id="login-id" placeholder="아이디를 입력하세요" required autocomplete="username">
+                    </div>
+                    <div class="input-group">
+                        <label for="login-pw">비밀번호</label>
+                        <input type="password" id="login-pw" placeholder="비밀번호를 입력하세요" required
+                            autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-primary" id="btn-login">로그인</button>
+                </form>
+                <!-- Signup Form -->
+                <form class="auth-form hidden" id="form-signup" onsubmit="handleSignup(event)">
+                    <div class="input-group">
+                        <label for="signup-id">아이디</label>
+                        <input type="text" id="signup-id" placeholder="4자 이상 입력" required minlength="4"
+                            autocomplete="username">
+                    </div>
+                    <div class="input-group">
+                        <label for="signup-nickname">닉네임</label>
+                        <input type="text" id="signup-nickname" placeholder="게임에서 사용할 이름" required minlength="2">
+                    </div>
+                    <div class="input-group">
+                        <label for="signup-pw">비밀번호</label>
+                        <input type="password" id="signup-pw" placeholder="6자 이상 입력" required minlength="6"
+                            autocomplete="new-password">
+                    </div>
+                    <div class="input-group">
+                        <label for="signup-pw2">비밀번호 확인</label>
+                        <input type="password" id="signup-pw2" placeholder="비밀번호를 다시 입력" required minlength="6"
+                            autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn-primary" id="btn-signup">가입하기</button>
+                </form>
+                <div class="auth-error hidden" id="auth-error"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== LOBBY SCREEN (메인 로비) ===== -->
+    <div class="screen" id="screen-lobby">
+        <header class="top-bar">
+            <div class="top-bar-left">
+                <span class="top-bar-logo">⚔️</span>
+                <span class="top-bar-title">아레나</span>
+            </div>
+            <div class="top-bar-center">
+                <div class="coin-display">
+                    <span class="coin-icon">🪙</span>
+                    <span class="coin-amount" id="coin-amount">1,000</span>
+                </div>
+            </div>
+            <div class="top-bar-right">
+                <button class="btn-icon" onclick="showScreen('screen-inbox')" title="선물함" style="position:relative; margin-right:8px;">🎁 <span class="inbox-badge hidden" id="inbox-badge" style="position:absolute; top:-4px; right:-4px; background:#ff4081; color:#fff; border-radius:50%; width:16px; height:16px; font-size:10px; font-weight:bold; display:flex; align-items:center; justify-content:center;">0</span></button>
+                <span class="user-name" id="user-name">유저</span>
+                <button class="btn-icon" onclick="logout()" title="로그아웃">🚪</button>
+            </div>
+        </header>
+
+        <!-- Daily Bonus Banner -->
+        <div class="daily-bonus hidden" id="daily-bonus">
+            <div class="daily-bonus-content">
+                <span class="daily-bonus-icon">🎁</span>
+                <div>
+                    <div class="daily-bonus-title">일일 출석 보너스!</div>
+                    <div class="daily-bonus-text">1,000 코인이 지급되었습니다!</div>
+                </div>
+            </div>
+            <button class="btn-bonus-close" onclick="closeDailyBonus()">받기</button>
+        </div>
+
+        <div class="lobby-content">
+            <div class="lobby-grid">
+                <!-- VS Computer -->
+                <button class="lobby-card" onclick="showScreen('screen-bet')">
+                    <div class="lobby-card-icon">🤖</div>
+                    <div class="lobby-card-title">컴퓨터 대전</div>
+                    <div class="lobby-card-desc">AI와 배팅 대결!</div>
+                    <div class="lobby-card-arrow">→</div>
+                </button>
+                <!-- VS Player -->
+                <button class="lobby-card" onclick="showScreen('screen-rooms')">
+                    <div class="lobby-card-icon">👥</div>
+                    <div class="lobby-card-title">유저 대전방</div>
+                    <div class="lobby-card-desc">대전방 만들기 & 2인 실시간 플레이</div>
+                    <div class="lobby-card-arrow">→</div>
+                </button>
+                <!-- Snail Race Mini-Game -->
+                <button class="lobby-card" onclick="showScreen('screen-snail-race')">
+                    <div class="lobby-card-icon">🐌</div>
+                    <div class="lobby-card-title">달팽이 레이스</div>
+                    <div class="lobby-card-desc">1등 달팽이 맞추기 & 3배 코인 획득!</div>
+                    <div class="lobby-card-arrow">→</div>
+                </button>
+                <!-- Fishing System -->
+                <button class="lobby-card" onclick="showScreen('screen-fishing')">
+                    <div class="lobby-card-icon">🎣</div>
+                    <div class="lobby-card-title">아레나 낚시터</div>
+                    <div class="lobby-card-desc">물고기 낚시, 낚시대 등급 업그레이드 & 코인 획득!</div>
+                    <div class="lobby-card-arrow">→</div>
+                </button>
+                <!-- Shop & Marketplace -->
+                <button class="lobby-card" onclick="showScreen('screen-shop')">
+                    <div class="lobby-card-icon">🛍️</div>
+                    <div class="lobby-card-title">상점 & 유저 장터</div>
+                    <div class="lobby-card-desc">칭호/아이템 구매 & 유저간 거래</div>
+                    <div class="lobby-card-arrow">→</div>
+                </button>
+                <!-- Profile -->
+                <button class="lobby-card" onclick="showScreen('screen-profile')">
+                    <div class="lobby-card-icon">👤</div>
+                    <div class="lobby-card-title">내 프로필</div>
+                    <div class="lobby-card-desc">내 전적 & 승률 통계</div>
+                    <div class="lobby-card-arrow">→</div>
+                </button>
+                <!-- Ranking -->
+                <button class="lobby-card" onclick="showScreen('screen-ranking')">
+                    <div class="lobby-card-icon">🏆</div>
+                    <div class="lobby-card-title">코인 랭킹</div>
+                    <div class="lobby-card-desc">코인 부자 TOP 10</div>
+                    <div class="lobby-card-arrow">→</div>
+                </button>
+                <!-- Global Chat -->
+                <button class="lobby-card" onclick="showScreen('screen-chat')">
+                    <div class="lobby-card-icon">💬</div>
+                    <div class="lobby-card-title">전체 광장 채팅</div>
+                    <div class="lobby-card-desc">아레나 플레이어 실시간 소통</div>
+                    <div class="lobby-card-arrow">→</div>
+                </button>
+                <!-- Admin Only Card -->
+                <button class="lobby-card admin-card hidden" id="admin-lobby-card" onclick="showScreen('screen-admin')">
+                    <div class="lobby-card-icon">⚙️</div>
+                    <div class="lobby-card-title">관리자 대시보드</div>
+                    <div class="lobby-card-desc">계정/선물 지급 & 대전방/유저 관리</div>
+                    <div class="lobby-card-arrow">→</div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== BET SCREEN (배팅 설정) ===== -->
+    <div class="screen" id="screen-bet">
+        <header class="top-bar">
+            <button class="btn-back" onclick="showScreen('screen-lobby')">← 로비</button>
+            <div class="coin-display">
+                <span class="coin-icon">🪙</span>
+                <span class="coin-amount" id="bet-coin-display">1,000</span>
+            </div>
+        </header>
+        <div class="bet-container">
+            <h2 class="bet-title">💰 코인 배팅</h2>
+            <p class="bet-subtitle">승리 시 배팅 금액의 <span class="highlight-green">2배</span> 획득!</p>
+            <div class="bet-amount-display">
+                <span class="bet-amount-value" id="bet-amount-value">100</span>
+                <span class="bet-amount-label">코인</span>
+            </div>
+            <div class="bet-presets">
+                <button class="bet-preset" onclick="setBet(100)">100</button>
+                <button class="bet-preset" onclick="setBet(500)">500</button>
+                <button class="bet-preset" onclick="setBet(1000)">1,000</button>
+                <button class="bet-preset" onclick="setBet(5000)">5,000</button>
+                <button class="bet-preset bet-preset-allin" onclick="setBetAll()">🔥 올인</button>
+            </div>
+            <div class="bet-custom">
+                <input type="number" id="bet-custom-input" placeholder="직접 입력" min="10" step="10">
+                <button class="btn-sm" onclick="setBetCustom()">적용</button>
+            </div>
+            <button class="btn-primary btn-play" onclick="startComputerGame()">⚔️ 대전 시작!</button>
+        </div>
+    </div>
+
+    <!-- ===== GAME SCREEN (컴퓨터 대전 경기장) ===== -->
+    <div class="screen" id="screen-game">
+        <header class="top-bar">
+            <button class="btn-back" onclick="showScreen('screen-lobby')">← 나가기</button>
+            <div class="game-bet-info">
+                <span class="coin-icon">🪙</span>
+                <span id="game-bet-amount">100</span> 배팅 중
+            </div>
+        </header>
+        <div class="game-container">
+            <div class="arena">
+                <div class="arena-side player-side">
+                    <div class="arena-label" id="game-player-name">나</div>
+                    <div class="arena-hand" id="game-player-hand">❓</div>
+                </div>
+                <div class="arena-vs">
+                    <div class="clash-effect" id="game-clash">💥</div>
+                    <span class="vs-text">VS</span>
+                </div>
+                <div class="arena-side computer-side">
+                    <div class="arena-label">컴퓨터</div>
+                    <div class="arena-hand" id="game-opponent-hand">❓</div>
+                </div>
+            </div>
+
+            <div class="game-result-container">
+                <div class="result-text" id="game-result-text">선택지를 클릭하세요!</div>
+                <div class="game-result-coins" id="game-result-coins"></div>
+            </div>
+
+            <div class="game-choices" id="game-choices">
+                <div class="choices-row">
+                    <button class="choice-btn" onclick="makeChoice('scissors')">
+                        <span class="choice-emoji">✌️</span>
+                        <span class="choice-name">가위</span>
+                        <div class="choice-glow"></div>
+                    </button>
+                    <button class="choice-btn" onclick="makeChoice('rock')">
+                        <span class="choice-emoji">✊</span>
+                        <span class="choice-name">바위</span>
+                        <div class="choice-glow"></div>
+                    </button>
+                    <button class="choice-btn" onclick="makeChoice('paper')">
+                        <span class="choice-emoji">🖐️</span>
+                        <span class="choice-name">보</span>
+                        <div class="choice-glow"></div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="game-actions hidden" id="game-actions">
+                <button class="btn-primary" onclick="playAgain()">🔄 한 판 더</button>
+                <button class="btn-secondary" onclick="showScreen('screen-lobby')">🏠 로비로</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ROOMS SCREEN (2인 대전방) ===== -->
+    <div class="screen" id="screen-rooms">
+        <header class="top-bar">
+            <button class="btn-back" onclick="showScreen('screen-lobby')">← 뒤로</button>
+            <div class="coin-display">
+                <span class="coin-icon">🪙</span>
+                <span class="coin-amount" id="rooms-coin-display">1,000</span>
+            </div>
+        </header>
+        <div class="rooms-container">
+            <div class="rooms-header">
+                <h2 class="rooms-title">👥 2인 대전방</h2>
+                <button class="btn-create-room" onclick="showCreateRoom()">+ 방 만들기</button>
+            </div>
+
+            <!-- Modal -->
+            <div class="create-room-modal hidden" id="create-room-modal">
+                <div class="glass-card modal-card">
+                    <h3>🏠 대전방 만들기</h3>
+                    <div class="input-group">
+                        <label for="room-name-input">방 제목</label>
+                        <input type="text" id="room-name-input" placeholder="즐거운 대결 한 판!" required>
+                    </div>
+                    <div class="input-group">
+                        <label>배팅 금액 선택</label>
+                        <div class="room-bet-presets">
+                            <button class="bet-preset" onclick="setRoomBet(100)">100</button>
+                            <button class="bet-preset" onclick="setRoomBet(500)">500</button>
+                            <button class="bet-preset" onclick="setRoomBet(1000)">1,000</button>
+                        </div>
+                        <div class="room-bet-display">설정 배팅: <span id="room-bet-value">500</span> 🪙</div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-primary" onclick="createRoom()">방 생성</button>
+                        <button class="btn-secondary" onclick="hideCreateRoom()">취소</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="room-list" id="room-list">
+                <div class="room-empty">생성된 대전방이 없습니다.<br>방을 만들어 다른 플레이어를 기다려보세요!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PVP GAME SCREEN (2인 실시간 대전 진행) ===== -->
+    <div class="screen" id="screen-pvp">
+        <header class="top-bar">
+            <button class="btn-back" onclick="exitRoom()">← 방 나가기</button>
+            <div class="game-bet-info">
+                <span class="coin-icon">🪙</span>
+                <span id="pvp-bet-amount">500</span> 배팅 대결
+            </div>
+        </header>
+        <div class="pvp-container">
+            <!-- Waiting Phase (플레이어 대기) -->
+            <div class="pvp-phase hidden" id="pvp-phase-waiting">
+                <div class="pvp-pass-screen">
+                    <span class="pvp-pass-icon animate-pulse">⏳</span>
+                    <h2>상대 플레이어 대기 중...</h2>
+                    <p>다른 플레이어가 이 방에 입장할 때까지 잠시만 기다려주세요!</p>
+                    <p class="pvp-turn-hint">새 탭이나 다른 브라우저에서 동일한 방으로 참가할 수 있습니다 ⚔️</p>
+                    <button class="btn-secondary btn-sm" onclick="inviteBotToRoom()" style="margin-top: 15px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">🤖 AI 연습 로봇 초대하기</button>
+                </div>
+            </div>
+
+            <!-- Active Player Choice Phase (내 선택 차례) -->
+            <div class="pvp-phase hidden" id="pvp-phase-choice">
+                <div class="pvp-turn-banner">
+                    <span class="pvp-turn-icon">⚔️</span>
+                    <h2 class="pvp-turn-name"><span id="pvp-my-role-name">나 (방장)</span> VS <span id="pvp-opponent-role-name" style="color:var(--accent-yellow);">상대방 (도전자)</span></h2>
+                    <p class="pvp-turn-hint">가위, 바위, 보 중 하나를 선택하세요!</p>
+                </div>
+                <div class="choices-row" id="pvp-choices-container">
+                    <button class="choice-btn" onclick="submitPvpChoice('scissors')">
+                        <span class="choice-emoji">✌️</span>
+                        <span class="choice-name">가위</span>
+                    </button>
+                    <button class="choice-btn" onclick="submitPvpChoice('rock')">
+                        <span class="choice-emoji">✊</span>
+                        <span class="choice-name">바위</span>
+                    </button>
+                    <button class="choice-btn" onclick="submitPvpChoice('paper')">
+                        <span class="choice-emoji">🖐️</span>
+                        <span class="choice-name">보</span>
+                    </button>
+                </div>
+                <div class="pvp-waiting-choice hidden" id="pvp-waiting-opponent-choice" style="margin-top: 20px;">
+                    <div class="pvp-pass-screen" style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 16px;">
+                        <span class="pvp-pass-icon animate-pulse" style="font-size: 2.5rem;">🔒</span>
+                        <h3 style="margin-top: 10px;">선택 완료!</h3>
+                        <p style="color:var(--text-secondary); margin-top: 5px;">상대방이 가위바위보 선택을 마칠 때까지 대기 중입니다... ⏳</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PVP Result Phase (결과 렌더링) -->
+            <div class="pvp-phase hidden" id="pvp-phase-result">
+                <div class="arena">
+                    <div class="arena-side player-side">
+                        <div class="arena-label" id="pvp-result-p1-name">방장</div>
+                        <div class="arena-hand" id="pvp-result-p1-hand">✊</div>
+                    </div>
+                    <div class="arena-vs">
+                        <div class="clash-effect show" id="pvp-clash">💥</div>
+                    </div>
+                    <div class="arena-side computer-side">
+                        <div class="arena-label" id="pvp-result-p2-name">도전자</div>
+                        <div class="arena-hand" id="pvp-result-p2-hand">✌️</div>
+                    </div>
+                </div>
+                <div class="game-result-container">
+                    <div class="result-text" id="pvp-result-text"></div>
+                    <div class="game-result-coins" id="pvp-result-coins"></div>
+                </div>
+                <div class="game-actions">
+                    <button class="btn-primary" onclick="requestPvpRematch()">🔄 다음 판 (리매치)</button>
+                    <button class="btn-secondary" onclick="exitRoom()">🏠 로비로</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PROFILE SCREEN (내 프로필) ===== -->
+    <div class="screen" id="screen-profile">
+        <header class="top-bar">
+            <button class="btn-back" onclick="showScreen('screen-lobby')">← 뒤로</button>
+            <span class="top-bar-title">내 프로필</span>
+        </header>
+        <div class="profile-container">
+            <div class="profile-header glass-card">
+                <div class="profile-avatar" id="profile-avatar">👤</div>
+                <div class="profile-info">
+                    <h2 class="profile-nickname" id="profile-nickname">플레이어</h2>
+                    <p class="profile-id" id="profile-id">@user</p>
+                </div>
+                <div class="profile-coins">
+                    <span class="coin-icon">🪙</span>
+                    <span class="profile-coins-value" id="profile-coins">1,000</span>
+                </div>
+            </div>
+
+            <!-- Equipped & Inventory Title Management -->
+            <div class="profile-title-section glass-card" style="margin-bottom: 20px; padding: 18px; border-radius: 16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 12px;">
+                    <h3 style="margin:0; font-size:1.05rem;">🏷️ 착용 칭호 관리</h3>
+                    <div id="equipped-title-badge"></div>
+                </div>
+                <div id="profile-title-actions" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:10px;"></div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card glass-card">
+                    <div class="stat-value" id="stat-total">0</div>
+                    <div class="stat-label">총 대전</div>
+                </div>
+                <div class="stat-card glass-card stat-win">
+                    <div class="stat-value" id="stat-wins">0</div>
+                    <div class="stat-label">승리</div>
+                </div>
+                <div class="stat-card glass-card stat-lose">
+                    <div class="stat-value" id="stat-losses">0</div>
+                    <div class="stat-label">패배</div>
+                </div>
+                <div class="stat-card glass-card stat-draw">
+                    <div class="stat-value" id="stat-draws">0</div>
+                    <div class="stat-label">무승부</div>
+                </div>
+            </div>
+            <div class="winrate-bar glass-card">
+                <div class="winrate-label">승률</div>
+                <div class="winrate-track">
+                    <div class="winrate-fill" id="winrate-fill" style="width: 0%"></div>
+                </div>
+                <div class="winrate-value" id="winrate-value">0%</div>
+            </div>
+            <div class="profile-history glass-card">
+                <h3>전적 기록</h3>
+                <div class="history-list" id="profile-history-list">
+                    <div class="history-empty">기록이 존재하지 않습니다</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== RANKING SCREEN (코인 랭킹) ===== -->
+    <div class="screen" id="screen-ranking">
+        <header class="top-bar">
+            <button class="btn-back" onclick="showScreen('screen-lobby')">← 뒤로</button>
+            <span class="top-bar-title">🏆 코인 랭킹</span>
+        </header>
+        <div class="ranking-container">
+            <div class="ranking-list" id="ranking-list">
+                <div class="history-empty">등록된 유저 정보가 없습니다.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CHAT SCREEN (전체 광장 채팅) ===== -->
+    <div class="screen" id="screen-chat">
+        <header class="top-bar">
+            <button class="btn-back" onclick="showScreen('screen-lobby')">← 뒤로</button>
+            <span class="top-bar-title">💬 전체 광장 채팅</span>
+        </header>
+        <div class="chat-container">
+            <div class="chat-box glass-card" id="chat-box">
+                <!-- 동적으로 채팅 메시지 노출 -->
+            </div>
+            <form class="chat-input-row" onsubmit="sendChatMessage(event)">
+                <input type="text" id="chat-input" placeholder="메시지를 입력하세요 (예: 한 판 하실 분?)" required autocomplete="off">
+                <button type="submit" class="btn-primary btn-sm">전송</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== ADMIN DASHBOARD SCREEN (관리자 전용 대시보드) ===== -->
+    <div class="screen" id="screen-admin">
+        <header class="top-bar">
+            <button class="btn-back" onclick="showScreen('screen-lobby')">← 뒤로</button>
+            <span class="top-bar-title">⚙️ 관리자 제어판</span>
+        </header>
+        <div class="admin-container">
+            <div class="admin-header glass-card">
+                <h2>👑 관리자 계정 모드</h2>
+                <p>유저 계정 삭제, 대전방 강제 삭제, 닉네임 변경 및 코인 수정을 수행할 수 있습니다.</p>
+            </div>
+
+            <div class="admin-section-title">🏠 개설된 대전방 목록 (강제 삭제)</div>
+            <div class="admin-room-list" id="admin-room-list">
+                <!-- 동적으로 생성된 방 목록 노출 -->
+            </div>
+
+            <div class="admin-section-title">👤 등록된 유저 계정 목록</div>
+            <div class="admin-user-list" id="admin-user-list">
+                <!-- 동적으로 관리자 유저 카드 리스트 생성 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SHOP & MARKET SCREEN ===== -->
+    <div class="screen" id="screen-shop">
+        <header class="top-bar">
+            <button class="btn-back" onclick="showScreen('screen-lobby')">← 뒤로</button>
+            <span class="top-bar-title">🛍️ 칭호 상점 & 유저 장터</span>
+            <div class="coin-display">
+                <span class="coin-icon">🪙</span>
+                <span class="coin-amount" id="shop-coin-display">1,000</span>
+            </div>
+        </header>
+        <div class="shop-container" style="max-width:900px; margin:20px auto; padding:0 15px;">
+            <div class="auth-tabs" style="margin-bottom: 20px;">
+                <button class="auth-tab active" id="tab-shop-buy" onclick="switchShopTab('buy')">🏪 공식 칭호 상점</button>
+                <button class="auth-tab" id="tab-shop-market" onclick="switchShopTab('market')">⚖️ 유저 거래 장터</button>
+                <button class="auth-tab" id="tab-shop-bag" onclick="switchShopTab('bag')">🎒 내 가방 & 보유 칭호</button>
+            </div>
+
+            <!-- 1. 공식 칭호 상점 -->
+            <div class="shop-tab-content" id="shop-tab-buy">
+                <div class="shop-grid" id="official-shop-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:15px;"></div>
+            </div>
+
+            <!-- 2. 유저 거래 장터 -->
+            <div class="shop-tab-content hidden" id="shop-tab-market">
+                <div class="market-header" style="margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:12px 18px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+                    <div>
+                        <h3 style="font-size: 1.1rem; margin:0;">⚖️ 유저들이 등록한 칭호 매물</h3>
+                        <p style="font-size: 0.8rem; color:var(--text-secondary); margin:4px 0 0 0;">다른 유저가 올려둔 칭호를 구매하거나 내 칭호를 판매할 수 있습니다.</p>
+                    </div>
+                    <button class="btn-primary btn-sm" onclick="showSellModal()">+ 매물 등록하기</button>
+                </div>
+                <div class="shop-grid" id="user-market-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:15px;"></div>
+            </div>
+
+            <!-- 3. 내 가방 -->
+            <div class="shop-tab-content hidden" id="shop-tab-bag">
+                <h3 style="font-size: 1.1rem; margin-bottom: 15px;">내가 보유한 칭호 목록</h3>
+                <div class="shop-grid" id="inventory-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:15px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SNAIL RACE SCREEN (달팽이 경주 미니게임) ===== -->
+    <div class="screen" id="screen-snail-race">
+        <header class="top-bar">
+            <button class="btn-back" onclick="showScreen('screen-lobby')">← 로비</button>
+            <div class="coin-display">
+                <span class="coin-icon">🪙</span>
+                <span class="coin-amount" id="snail-coin-display">1,000</span>
+            </div>
+        </header>
+
+        <div class="glass-card" style="padding:20px; text-align:center; margin-bottom:15px;">
+            <h2 style="font-size:1.6rem; font-weight:900; margin-bottom:6px;">🐌 미니게임: 달팽이 레이스</h2>
+            <p style="font-size:0.85rem; color:var(--text-secondary);">1등으로 들어올 달팽이를 맞추세요! 예측 성공 시 배팅금의 <span style="color:var(--accent-yellow); font-weight:bold;">3배</span> 획득!</p>
+        </div>
+
+        <!-- Bet & Snail Pick Controls -->
+        <div class="glass-card" style="padding:16px; margin-bottom:15px;">
+            <h4 style="margin-bottom:10px; font-size:0.95rem;">1. 우승할 달팽이 선택</h4>
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:15px;" id="snail-pick-btns">
+                <button class="btn-secondary active" onclick="selectSnail(1)" id="snail-btn-1" style="display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px; border:2px solid var(--accent-pink);">
+                    <span style="font-size:1.6rem;">🐌</span>
+                    <span style="font-weight:bold; font-size:0.85rem;">1번 스피디</span>
+                </button>
+                <button class="btn-secondary" onclick="selectSnail(2)" id="snail-btn-2" style="display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px;">
+                    <span style="font-size:1.6rem;">🐌</span>
+                    <span style="font-weight:bold; font-size:0.85rem;">2번 터보</span>
+                </button>
+                <button class="btn-secondary" onclick="selectSnail(3)" id="snail-btn-3" style="display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px;">
+                    <span style="font-size:1.6rem;">🐌</span>
+                    <span style="font-weight:bold; font-size:0.85rem;">3번 썬더</span>
+                </button>
+            </div>
+
+            <h4 style="margin-bottom:10px; font-size:0.95rem;">2. 배팅 코인 설정</h4>
+            <div class="bet-presets" style="margin-bottom:10px;">
+                <button class="bet-preset" onclick="setSnailBet(100)">100</button>
+                <button class="bet-preset" onclick="setSnailBet(500)">500</button>
+                <button class="bet-preset" onclick="setSnailBet(1000)">1,000</button>
+                <button class="bet-preset" onclick="setSnailBet(5000)">5,000</button>
+                <button class="bet-preset bet-preset-allin" onclick="setSnailBetAll()">🔥 올인</button>
+            </div>
+            <div class="bet-custom" style="max-width:100%; margin-bottom:15px;">
+                <input type="number" id="snail-bet-input" placeholder="배팅 코인 직접 입력" min="10" value="500" style="width:100%; padding:10px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:8px; color:#fff;">
+            </div>
+
+            <button class="btn-primary" id="start-snail-race-btn" onclick="startSnailRace()">🚀 경주 시작! (배팅하기)</button>
+        </div>
+
+        <!-- Racetrack Visual -->
+        <div class="glass-card" style="padding:16px; display:flex; flex-direction:column; gap:12px;" id="snail-track-container">
+            <div id="snail-race-status" style="text-align:center; font-weight:bold; font-size:0.95rem; color:var(--accent-cyan);">🏁 달팽이들이 출발 선에서 대기 중입니다!</div>
+
+            <!-- Track 1 -->
+            <div style="background:rgba(0,0,0,0.3); border-radius:10px; padding:8px 12px; position:relative;">
+                <div style="font-size:0.8rem; font-weight:bold; color:var(--accent-pink); margin-bottom:4px;">1번 스피디 🔴</div>
+                <div style="height:40px; position:relative; border-right:4px dashed var(--accent-yellow); background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.08)); border-radius:6px; overflow:hidden;">
+                    <div id="snail-runner-1" style="position:absolute; left:0%; top:2px; font-size:1.8rem; transition: left 0.15s ease-out;">🐌</div>
+                </div>
+            </div>
+
+            <!-- Track 2 -->
+            <div style="background:rgba(0,0,0,0.3); border-radius:10px; padding:8px 12px; position:relative;">
+                <div style="font-size:0.8rem; font-weight:bold; color:var(--accent-cyan); margin-bottom:4px;">2번 터보 🔵</div>
+                <div style="height:40px; position:relative; border-right:4px dashed var(--accent-yellow); background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.08)); border-radius:6px; overflow:hidden;">
+                    <div id="snail-runner-2" style="position:absolute; left:0%; top:2px; font-size:1.8rem; transition: left 0.15s ease-out;">🐌</div>
+                </div>
+            </div>
+
+            <!-- Track 3 -->
+            <div style="background:rgba(0,0,0,0.3); border-radius:10px; padding:8px 12px; position:relative;">
+                <div style="font-size:0.8rem; font-weight:bold; color:var(--win-color); margin-bottom:4px;">3번 썬더 🟢</div>
+                <div style="height:40px; position:relative; border-right:4px dashed var(--accent-yellow); background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.08)); border-radius:6px; overflow:hidden;">
+                    <div id="snail-runner-3" style="position:absolute; left:0%; top:2px; font-size:1.8rem; transition: left 0.15s ease-out;">🐌</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FISHING SYSTEM SCREEN (아레나 낚시터) ===== -->
+    <div class="screen" id="screen-fishing">
+        <header class="top-bar">
+            <button class="btn-back" onclick="showScreen('screen-lobby')">← 로비</button>
+            <div class="coin-display">
+                <span class="coin-icon">🪙</span>
+                <span class="coin-amount" id="fishing-coin-display">1,000</span>
+            </div>
+        </header>
+
+        <div class="glass-card" style="padding:18px; text-align:center; margin-bottom:15px;">
+            <h2 style="font-size:1.6rem; font-weight:900; margin-bottom:4px;">🎣 아레나 낚시터</h2>
+            <p style="font-size:0.85rem; color:var(--text-secondary);">희귀한 물고기를 낚아 코인을 벌고 고급 낚시대로 업그레이드하세요!</p>
+        </div>
+
+        <!-- Fishing Tabs -->
+        <div class="auth-tabs" style="margin-bottom:15px;">
+            <button class="auth-tab active" id="tab-fish-spot" onclick="switchFishingTab('spot')">🎣 낚시터</button>
+            <button class="auth-tab" id="tab-fish-shop" onclick="switchFishingTab('shop')">🛒 낚시대 상점</button>
+            <button class="auth-tab" id="tab-fish-bucket" onclick="switchFishingTab('bucket')">🧺 내 어망 (<span id="fish-count-badge">0</span>)</button>
+        </div>
+
+        <!-- Tab 1: 낚시터 필드 -->
+        <div class="fishing-tab-content" id="fish-tab-spot">
+            <!-- Equipped Rod Card -->
+            <div class="glass-card" style="padding:14px 18px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2);">
+                <div>
+                    <div style="font-size:0.8rem; color:var(--text-secondary);">현재 장착 중인 낚시대</div>
+                    <div style="font-size:1.05rem; font-weight:bold; color:#fff;" id="current-rod-name">🪵 나무 낚시대</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:0.75rem; color:var(--accent-cyan);" id="current-rod-effect">희귀 확률 기본 | 판매가 1.0x</div>
+                    <button class="btn-secondary btn-sm" style="margin-top:4px; padding:4px 10px; font-size:0.75rem;" onclick="switchFishingTab('shop')">변경 / 상점</button>
+                </div>
+            </div>
+
+            <!-- Pond Spot Area -->
+            <div class="glass-card" style="padding:24px 16px; text-align:center; margin-bottom:15px; background:linear-gradient(180deg, rgba(13,71,161,0.3), rgba(1,87,155,0.5)); border:1px solid rgba(0,229,255,0.3); position:relative; overflow:hidden;">
+                <div id="fish-pond-animation" style="font-size:4rem; margin-bottom:10px; transition: transform 0.3s ease;">🌊 🎣 🌊</div>
+                <div id="fish-status-text" style="font-size:1.05rem; font-weight:bold; color:#fff; min-height:48px; display:flex; align-items:center; justify-content:center;">
+                    찌를 던져 낚시를 시작해보세요!
+                </div>
+
+                <div style="margin-top:15px; display:flex; gap:10px; justify-content:center;">
+                    <button class="btn-primary" id="btn-cast-rod" onclick="castFishingRod()" style="padding:14px 28px; font-size:1.1rem; background:linear-gradient(135deg, #00e5ff, #1de9b6); text-shadow:0 1px 2px rgba(0,0,0,0.4);">
+                        🎣 찌 던지기
+                    </button>
+                    <button class="btn-primary hidden" id="btn-pull-rod" onclick="pullFishingRod()" style="padding:14px 28px; font-size:1.2rem; background:linear-gradient(135deg, #ff4081, #ff6d00);">
+                        💥 HIT! 낚아채기!
+                    </button>
+                </div>
+            </div>
+
+            <!-- Last Caught Result Display -->
+            <div id="last-caught-card" class="glass-card hidden" style="padding:16px; text-align:center; background:rgba(255,255,255,0.06); border:1px dashed var(--accent-yellow);">
+                <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:4px;">🎉 방금 낚은 물고기</div>
+                <div id="caught-fish-badge" style="display:inline-block; padding:4px 12px; border-radius:12px; font-weight:bold; font-size:0.9rem; margin-bottom:6px;">[희귀] 연어</div>
+                <div style="font-size:1.2rem; font-weight:bold; color:var(--accent-yellow);" id="caught-fish-price">🪙 1,200 코인</div>
+                <div style="font-size:0.8rem; color:var(--text-secondary);" id="caught-fish-size">길이: 42.5 cm</div>
+            </div>
+        </div>
+
+        <!-- Tab 2: 낚시대 상점 -->
+        <div class="fishing-tab-content hidden" id="fish-tab-shop">
+            <h3 style="font-size:1.1rem; margin-bottom:12px;">🛒 낚시대 상점 (등급별 효과)</h3>
+            <div id="rod-shop-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:12px;"></div>
+        </div>
+
+        <!-- Tab 3: 내 어망 (수족관 & 일괄 판매) -->
+        <div class="fishing-tab-content hidden" id="fish-tab-bucket">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; background:rgba(255,255,255,0.05); padding:12px 16px; border-radius:12px;">
+                <div>
+                    <div style="font-size:0.8rem; color:var(--text-secondary);">어망 보관 총 가치</div>
+                    <div style="font-size:1.2rem; font-weight:bold; color:var(--accent-yellow);" id="bucket-total-value">🪙 0 코인</div>
+                </div>
+                <button class="btn-primary btn-sm" onclick="sellAllFish()" style="background:var(--accent-orange);">💰 전체 물고기 일괄 판매</button>
+            </div>
+            <div id="fish-bucket-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:12px;"></div>
+        </div>
+    </div>
+
+    <!-- Sell Modal -->
+    <div class="create-room-modal hidden" id="sell-market-modal">
+        <div class="glass-card modal-card">
+            <h3>⚖️ 유저 장터 매물 등록</h3>
+            <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:15px;">보유 중인 칭호를 원하는 코인 가격에 유저 장터에 판매 등록합니다.</p>
+            <div class="input-group">
+                <label>판매할 칭호 선택</label>
+                <select id="sell-title-select" style="width:100%; padding:10px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2); color:#fff; border-radius:8px;"></select>
+            </div>
+            <div class="input-group">
+                <label>판매 가격 (코인 🪙)</label>
+                <input type="number" id="sell-price-input" placeholder="예: 2500" min="10" step="10">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="confirmListOnMarket()">장터에 등록</button>
+                <button class="btn-secondary" onclick="hideSellModal()">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== INBOX SCREEN (선물함 및 알림) ===== -->
+    <div class="screen" id="screen-inbox">
+        <header class="top-bar">
+            <button class="btn-back" onclick="showScreen('screen-lobby')">← 뒤로</button>
+            <span class="top-bar-title">🎁 선물함 및 알림</span>
+        </header>
+        <div class="inbox-container" style="max-width:600px; margin:20px auto; padding:0 15px;">
+            <div class="inbox-list" id="inbox-list"></div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST (알림) ===== -->
+    <div class="toast hidden" id="toast">
+        <span class="toast-text" id="toast-text"></span>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
